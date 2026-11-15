@@ -1,0 +1,10 @@
+# Copy to .dev.vars for local testing with "npm run preview". Never commit .dev.vars.
+SESSION_SECRET=any-long-random-text
+ADMIN_GITHUB_ID=your-numeric-github-id
+GITHUB_CLIENT_ID=
+GITHUB_CLIENT_SECRET=
+GITHUB_REPO=your-username/portfolio
+GITHUB_TOKEN=
+RESEND_API_KEY=
+CONTACT_TO=
+TURNSTILE_SECRET=

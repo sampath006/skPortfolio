@@ -1,0 +1,80 @@
+---
+// The private editing panel. Its address comes from the ADMIN_PATH build
+// variable, it is never linked from the site, and search engines are told to
+// skip it. The real lock is the GitHub sign-in checked by the API.
+import Base from '../layouts/Base.astro';
+import { adminPath } from '../lib/profile';
+
+export function getStaticPaths() {
+  const path = (process.env.ADMIN_PATH || 'studio').replace(/[^a-z0-9-]/gi, '') || 'studio';
+  return [{ params: { admin: path } }];
+}
+---
+<Base title="Editor" noindex>
+  <main class="wrap editor" data-path={`/${adminPath}/`}>
+    <header class="ed-head">
+      <h1>Site editor</h1>
+      <p id="who" class="dim"></p>
+    </header>
+
+    <section id="gate" hidden>
+      <p class="measure">Sign in with the GitHub account that owns this site to edit it.</p>
+      <p style="margin-top:1.25rem"><a class="btn" id="signin" href="#">Sign in with GitHub</a></p>
+    </section>
+
+    <section id="panel" hidden>
+      <div class="ed-bar">
+        <button class="btn" id="publish" type="button">Publish</button>
+        <button class="btn ghost" id="preview" type="button">Save to preview</button>
+        <button class="btn ghost" id="signout" type="button">Sign out</button>
+      </div>
+      <p class="note" id="status" role="status"></p>
+      <ul id="issues" class="issues"></ul>
+
+      <details class="ed-sec" open>
+        <summary>Photos</summary>
+        <div class="ed-photos">
+          <div class="field">
+            <label for="up-portrait">Your photo (shown in the circle at the top)</label>
+            <input id="up-portrait" type="file" accept="image/*" />
+          </div>
+          <div class="field">
+            <label for="up-caption">Gallery photo caption</label>
+            <input id="up-caption" maxlength="120" placeholder="Where was this taken?" />
+          </div>
+          <div class="field">
+            <label for="up-gallery">Add a gallery photo</label>
+            <input id="up-gallery" type="file" accept="image/*" />
+          </div>
+          <p class="dim">Photos are resized before upload. A new gallery photo appears on the site after you press Publish.</p>
+        </div>
+      </details>
+
+      <div id="form"></div>
+    </section>
+  </main>
+
+  <style is:global>
+    .editor { padding-block: 3rem 6rem; max-width: 56rem; }
+    .ed-head h1 { font-size: clamp(2rem, 5vw, 3rem); }
+    .ed-head { margin-bottom: 1.5rem; }
+    .ed-bar { position: sticky; top: 0; z-index: 5; display: flex; flex-wrap: wrap; gap: 0.6rem; padding: 0.9rem 0; background: var(--pine); border-bottom: 1px solid var(--line); }
+    .issues { margin: 0.5rem 0 1rem; color: var(--amber); display: grid; gap: 0.25rem; }
+    .ed-sec { border: 1px solid var(--line); border-radius: 0.9rem; margin-top: 1rem; background: var(--pine-deep); }
+    .ed-sec > summary { cursor: pointer; padding: 1rem 1.25rem; font: 650 1.2rem var(--display); }
+    .ed-sec > .ed-body, .ed-photos { padding: 0 1.25rem 1.25rem; display: grid; gap: 0.9rem; }
+    .ed-item { border: 1px solid var(--line); border-radius: 0.7rem; padding: 0.9rem; display: grid; gap: 0.75rem; background: var(--pine); }
+    .ed-row { display: flex; gap: 0.5rem; align-items: start; }
+    .ed-row > .field, .ed-row > .ed-item { flex: 1; }
+    .ed-tools { display: flex; gap: 0.3rem; }
+    .ed-tools button, .ed-add { font: 600 0.85rem var(--body); color: var(--mist); background: transparent; border: 1px solid var(--line); border-radius: 0.5rem; padding: 0.4rem 0.6rem; cursor: pointer; }
+    .ed-tools button:hover, .ed-add:hover { border-color: var(--amber); }
+    .ed-add { justify-self: start; }
+    .ed-list { display: grid; gap: 0.6rem; }
+    .ed-list > .ed-label { font-weight: 600; font-size: 0.95rem; }
+    .editor textarea { min-height: 6rem; }
+  </style>
+  <script>
+    import '../scripts/admin.ts';
+  </script>
+</Base>

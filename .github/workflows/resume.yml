@@ -1,0 +1,38 @@
+name: Resume PDF
+# Rebuilds public/resume.pdf whenever the profile or the resume page changes,
+# and commits it. Cloudflare then redeploys with the new PDF.
+on:
+  push:
+    branches: [main]
+    paths:
+      - src/content/profile.json
+      - src/pages/resume.astro
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency: resume-pdf
+
+jobs:
+  pdf:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+        env:
+          SITE_URL: ${{ vars.SITE_URL }}
+      - run: npx playwright install --with-deps chromium
+      - run: npm run resume
+      - name: Commit the PDF if it changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public/resume.pdf
+          git diff --cached --quiet || (git commit -m "Regenerate resume PDF" && git pull --rebase && git push)

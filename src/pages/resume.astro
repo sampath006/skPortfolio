@@ -1,0 +1,82 @@
+---
+import { profile } from '../lib/profile';
+const site = Astro.site ? new URL('/', Astro.site).host : '';
+const showSite = site && !site.startsWith('localhost');
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Resume | {profile.name}</title>
+    <meta name="description" content={`Resume of ${profile.name}, ${profile.title.toLowerCase()}.`} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <style>
+      @page { size: A4; margin: 11mm 14mm; }
+      * { box-sizing: border-box; }
+      body { margin: 0; background: #e9efec; color: #14201e; font: 9.8pt/1.38 Arial, Helvetica, sans-serif; }
+      .bar { max-width: 210mm; margin: 0 auto; padding: 14px 4px; display: flex; gap: 14px; font-size: 11pt; }
+      .bar a { color: #0f2b2a; font-weight: 700; }
+      .sheet { max-width: 210mm; margin: 0 auto 32px; background: #fff; padding: 14mm 15mm; }
+      h1 { font-size: 22pt; margin: 0; letter-spacing: -0.01em; }
+      .sub { margin: 2px 0 0; font-size: 11pt; }
+      .meta { margin: 6px 0 0; color: #3d4f4b; }
+      .meta a { color: inherit; }
+      h2 { font-size: 10pt; margin: 11px 0 5px; padding-bottom: 3px; border-bottom: 1.5px solid #14201e; }
+      h3 { font-size: 9.8pt; margin: 0; }
+      p { margin: 0; }
+      .row { display: flex; justify-content: space-between; gap: 12px; }
+      .row span { white-space: nowrap; color: #3d4f4b; }
+      .item { margin-bottom: 6px; break-inside: avoid; }
+      ul { margin: 3px 0 0; padding-left: 16px; }
+      li { margin-bottom: 1.5px; }
+      @media print { body { background: #fff; } .bar { display: none; } .sheet { margin: 0; padding: 0; max-width: none; } }
+    </style>
+  </head>
+  <body>
+    <div class="bar">
+      <a href="/">Back to the site</a>
+      <a href="/resume.pdf" download>Download PDF</a>
+    </div>
+    <main class="sheet">
+      <h1>{profile.name}</h1>
+      <p class="sub">{profile.title}</p>
+      <p class="meta">
+        {[profile.location, profile.availability].filter(Boolean).join(' | ')}
+        {profile.links.email && <> | <a href={`mailto:${profile.links.email}`}>{profile.links.email}</a></>}
+        {profile.links.linkedin && <> | <a href={profile.links.linkedin}>{profile.links.linkedin.replace(/^https?:\/\/(www\.)?/, '')}</a></>}
+        {profile.links.github && <> | <a href={profile.links.github}>{profile.links.github.replace(/^https?:\/\//, '')}</a></>}
+        {showSite && <> | {site}</>}
+      </p>
+
+      <h2>Summary</h2>
+      <p>{profile.about.split('. ').slice(0, 2).join('. ')}.</p>
+
+      <h2>Experience</h2>
+      {profile.experience.map((j) => (
+        <div class="item">
+          <div class="row"><h3>{j.role}, {j.company}{j.place && `, ${j.place}`}</h3><span>{j.start} to {j.end}</span></div>
+          {j.bullets.length > 0 && <ul>{j.bullets.map((b) => <li>{b}</li>)}</ul>}
+        </div>
+      ))}
+
+      <h2>Selected work</h2>
+      {profile.caseStudies.map((c) => (
+        <div class="item"><h3>{c.title}</h3><p>{c.approach} {c.result}</p></div>
+      ))}
+
+      <h2>Projects</h2>
+      {profile.projects.map((p) => (
+        <div class="item"><h3>{p.name}{p.tags.length > 0 && ` (${p.tags.join(', ')})`}</h3><p>{p.description}</p></div>
+      ))}
+
+      <h2>Skills</h2>
+      {profile.skills.map((s) => <p><strong>{s.group}:</strong> {s.items.join(', ')}</p>)}
+
+      <h2>Education</h2>
+      {profile.education.map((e) => (
+        <div class="row"><p><strong>{e.degree}</strong>, {e.school}{e.detail && `. ${e.detail}`}</p><span>{e.years}</span></div>
+      ))}
+    </main>
+  </body>
+</html>

@@ -1,0 +1,37 @@
+name: CI
+# Runs on every pull request and every push to main.
+# Turn on branch protection for "main" and require this check, and a failing
+# test will block the merge (and so block the deploy).
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Type check
+        run: npm run check
+      - name: Unit tests (also validates profile.json)
+        run: npm test
+      - name: Build
+        run: npm run build
+      - name: Install browser
+        run: npx playwright install --with-deps chromium
+      - name: Browser tests (site, API, admin lock)
+        run: npm run e2e
+        env:
+          CI: 'true'
+      - name: Lighthouse (all scores must be 90+)
+        run: npx --yes @lhci/cli@0.15 autorun

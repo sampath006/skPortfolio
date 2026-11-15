@@ -1,0 +1,113 @@
+{
+  "name": "Sampath Kumar Reddy Manam",
+  "shortName": "Sampath",
+  "title": "Backend engineer",
+  "pitch": "Backend engineer building cloud systems that scale themselves.",
+  "location": "Hyderabad, India",
+  "availability": "Open to roles in India and abroad",
+  "timezone": "IST (UTC+5:30)",
+  "stack": ["AWS", "Azure", "Python", "C++", "C#", "React"],
+  "about": "I build the backend systems that keep cloud data safe: backup and recovery for databases running on AWS and Azure. In three years I went from intern to senior engineer, and I enjoy problems where networking, security and scale collide. Away from the keyboard I'm on a bike heading into a forest, behind a camera, or tinkering with GPUs.",
+  "links": { "github": "", "linkedin": "", "email": "" },
+  "githubUsername": "",
+  "featuredRepos": [],
+  "experience": [
+    {
+      "role": "Senior Software Engineer",
+      "company": "Commvault",
+      "place": "Hyderabad",
+      "start": "Jan 2026",
+      "end": "Present",
+      "bullets": [
+        "Lead cloud database protection across AWS and Azure: Oracle, DynamoDB, Redshift, DocumentDB, RDS and MSSQL / Azure SQL.",
+        "Designed on-demand autoscaling for backup compute nodes.",
+        "Own real-time customer escalations and have mentored 10+ engineers."
+      ]
+    },
+    {
+      "role": "Software Engineer",
+      "company": "Commvault",
+      "place": "Hyderabad",
+      "start": "Jul 2023",
+      "end": "Dec 2025",
+      "bullets": [
+        "Added backup support for multiple SaaS apps using an AI-assisted approach, including BigCommerce.",
+        "Built automation that replaced manual verification, and worked on licensing, a revenue-generating feature.",
+        "Shipped React UI features, stored procedures and C++ / C# backend changes."
+      ]
+    },
+    {
+      "role": "Development Intern",
+      "company": "Commvault",
+      "place": "Bengaluru",
+      "start": "Jan 2023",
+      "end": "Jul 2023",
+      "bullets": []
+    }
+  ],
+  "caseStudies": [
+    {
+      "title": "Compute nodes that register themselves",
+      "summary": "On-demand autoscaling for backup jobs, where every new node has to find its own way home.",
+      "problem": "Backup jobs ran on a fixed pool of compute, so big jobs queued up and idle machines still cost money. New nodes could not simply be added: their IP addresses are unknown in advance and the network to the control server only works in one direction.",
+      "approach": "I designed nodes that spin up on demand from machine images kept current, then register themselves with the control server. Each node runs with least-privilege IAM permissions, reaches only the databases it needs, and trusts controller nodes that live in a separate AWS account.",
+      "result": "Jobs finish faster because compute grows with the queue, and nodes shut down when the work is done, so compute is only paid for while it is used.",
+      "tags": ["AWS", "IAM", "EC2", "VPC", "Autoscaling"]
+    },
+    {
+      "title": "One product, six cloud databases",
+      "summary": "Backup and restore for managed databases across AWS and Azure.",
+      "problem": "Every managed database exposes different APIs, limits and failure modes, but customers expect protection to behave the same way everywhere.",
+      "approach": "I built and hardened backup and restore support for Oracle on AWS, DynamoDB, Redshift, DocumentDB, RDS and MSSQL / Azure SQL inside one product, and automated the verification that used to be done by hand.",
+      "result": "Six database services protected under a single workflow, with automated checks replacing manual verification.",
+      "tags": ["AWS", "Azure", "Databases", "Python", "C++"]
+    },
+    {
+      "title": "Teaching an AI to add new SaaS backups",
+      "summary": "A faster route to supporting new SaaS applications.",
+      "problem": "Supporting each new SaaS application meant writing custom integration code, which made every new workload slow to ship.",
+      "approach": "I worked on an AI-assisted approach, where a trained model does much of the per-application work. The BigCommerce agent was one of the workloads delivered this way.",
+      "result": "New SaaS workloads could be added much faster than with hand-written integrations.",
+      "tags": ["AI", "SaaS", "APIs"]
+    }
+  ],
+  "projects": [
+    {
+      "name": "This website",
+      "description": "The site you are reading: a static front end with a serverless API for the contact form and visitor counter, a private editing panel, and a pipeline that tests and deploys every change.",
+      "url": "",
+      "tags": ["Astro", "Cloudflare Pages", "D1", "GitHub Actions"]
+    },
+    {
+      "name": "Handwritten-digit network in CUDA",
+      "description": "A neural network that recognises handwritten digits from the MNIST dataset, with the GPU kernels written by hand instead of using a framework.",
+      "url": "",
+      "tags": ["CUDA", "C++", "GPU"]
+    }
+  ],
+  "education": [
+    {
+      "degree": "BTech, Computer Science and Engineering",
+      "school": "IIIT Sri City",
+      "years": "2019 to 2023",
+      "detail": "CGPA 9.3 / 10"
+    }
+  ],
+  "achievements": [
+    { "title": "9.3 / 10", "detail": "CGPA in BTech Computer Science at IIIT Sri City." },
+    { "title": "Intern to senior in 3 years", "detail": "Joined as an intern in 2023 and became Senior Software Engineer in January 2026." },
+    { "title": "10+ engineers mentored", "detail": "Trained junior engineers joining the team." }
+  ],
+  "skills": [
+    { "group": "Languages", "items": ["Python", "C++", "C#", "JavaScript", "SQL"] },
+    { "group": "Cloud", "items": ["AWS IAM", "EC2", "VPC", "Security groups", "RDS", "DynamoDB", "Redshift", "Azure SQL"] },
+    { "group": "Front end", "items": ["React"] },
+    { "group": "Practices", "items": ["API design", "Test automation", "Customer escalations", "Mentoring"] }
+  ],
+  "interests": [
+    { "title": "Bike rides and forest trails", "text": "Weekends on the road, usually ending somewhere with more trees than people." },
+    { "title": "Travel and photography", "text": "I carry a camera on every trip." },
+    { "title": "AI and GPU tinkering", "text": "Writing CUDA kernels by hand to see what the frameworks hide." }
+  ],
+  "gallery": []
+}

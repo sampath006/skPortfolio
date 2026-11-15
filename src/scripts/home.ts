@@ -1,20 +1,4 @@
 // Everything interactive on the home page. No framework needed.
-document.documentElement.classList.add('js');
-const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-/* ---- Section headings: underline draws once ---- */
-const seen = new IntersectionObserver(
-  (entries) => {
-    for (const e of entries) {
-      if (e.isIntersecting) {
-        e.target.classList.add('seen');
-        seen.unobserve(e.target);
-      }
-    }
-  },
-  { threshold: 0.6 },
-);
-document.querySelectorAll('.band > .wrap > h2').forEach((h) => seen.observe(h));
 
 /* ---- Photo / avatar switch ---- */
 const face = document.querySelector<HTMLElement>('.face');
@@ -26,54 +10,113 @@ swap?.addEventListener('click', () => {
   swap.setAttribute('aria-pressed', String(next === 'avatar'));
 });
 
-/* ---- Autoscaler demo ---- */
-type Slot = { el: HTMLElement; state: 'off' | 'joining' | 'running'; age: number };
-const slots: Slot[] = [...document.querySelectorAll<HTMLElement>('#slots i')].map((el) => ({ el, state: 'off', age: 0 }));
-const jobsEl = document.getElementById('jobs')!;
-const nodesEl = document.getElementById('nodes')!;
-const queueBtn = document.getElementById('queue');
-let jobs = 0;
-let timer: number | undefined;
+/* ---- The pipeline: a backup job travels down the page as you scroll ---- */
+const main = document.querySelector<HTMLElement>('.pipeline');
+const lane = document.querySelector<HTMLElement>('.lane');
+const statusBox = document.querySelector<HTMLElement>('.job-status');
+const stateEl = document.getElementById('job-state');
+const pctEl = document.getElementById('job-pct');
 
-function paint() {
-  jobsEl.textContent = String(jobs);
-  nodesEl.textContent = String(slots.filter((s) => s.state === 'running').length);
-  for (const s of slots) s.state === 'off' ? s.el.removeAttribute('data-s') : (s.el.dataset.s = s.state);
+type Stop = { el: HTMLElement; top: number; on: boolean };
+type Stage = { name: string; top: number };
+type Viz = { el: HTMLElement; kind: string; top: number; height: number; items: HTMLElement[] };
+let nodes: Stop[] = [];
+let stages: Stage[] = [];
+let vizzes: Viz[] = [];
+let mainTop = 0;
+let mainHeight = 0;
+let lastState = '';
+
+// Distance from the top of the pipeline, in page pixels.
+const offsetIn = (el: HTMLElement) => el.getBoundingClientRect().top + scrollY - mainTop;
+
+function layout() {
+  if (!main || !lane) return;
+  const m = main.getBoundingClientRect();
+  mainTop = m.top + scrollY;
+  mainHeight = main.offsetHeight;
+  // Line up the spine with where the node dots sit, whatever the screen width.
+  const cs = getComputedStyle(lane);
+  const gutter = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--gutter')) * parseFloat(getComputedStyle(document.documentElement).fontSize);
+  const contentLeft = lane.getBoundingClientRect().left + parseFloat(cs.paddingLeft);
+  main.style.setProperty('--spine-x', `${contentLeft - gutter / 2 - m.left}px`);
+
+  nodes = [...main.querySelectorAll<HTMLElement>('[data-node]')].map((el) => {
+    const dotTop = parseFloat(getComputedStyle(el, '::before').top) || 0;
+    return { el, top: offsetIn(el) + dotTop, on: el.classList.contains('on') };
+  });
+  stages = [...main.querySelectorAll<HTMLElement>('[data-stage]')].map((el) => ({ name: el.dataset.stage!, top: offsetIn(el) }));
+  vizzes = [...main.querySelectorAll<HTMLElement>('[data-viz]')].map((el) => ({
+    el,
+    kind: el.dataset.viz!,
+    top: offsetIn(el),
+    height: el.offsetHeight,
+    items: [...el.querySelectorAll<HTMLElement>(el.dataset.viz === 'cluster' ? '.slots i' : 'li')],
+  }));
+  update();
 }
 
-function tick() {
-  const live = slots.filter((s) => s.state !== 'off');
-  const wanted = Math.min(slots.length, Math.ceil(jobs / 2));
-  // scale up: one new node per tick, it must register before it can work
-  if (live.length < wanted) {
-    const free = slots.filter((s) => s.state === 'off');
-    const pick = free[Math.floor(Math.random() * free.length)];
-    if (pick) Object.assign(pick, { state: 'joining', age: 0 });
-  }
-  for (const s of live) {
-    s.age++;
-    if (s.state === 'joining' && s.age >= 2) Object.assign(s, { state: 'running', age: 0 });
-    else if (s.state === 'running' && s.age % 2 === 0 && jobs > 0) jobs--;
-  }
-  // scale down: when the queue is empty, release one node per tick
-  if (jobs === 0) {
-    const idle = slots.find((s) => s.state === 'running');
-    if (idle) idle.state = 'off';
-  }
-  paint();
-  if (jobs === 0 && slots.every((s) => s.state === 'off')) {
-    clearInterval(timer);
-    timer = undefined;
-  }
+const clamp = (v: number, lo = 0, hi = 1) => Math.min(hi, Math.max(lo, v));
+
+function drawCluster(v: Viz, y: number) {
+  // 0 to 0.45: nodes spin up one by one, the newest still registering
+  // 0.45 to 0.7: everything running, queue drains
+  // 0.7 to 1: queue empty, nodes shut down so nobody pays for idle machines
+  const t = clamp((y - v.top) / (v.height + innerHeight * 0.45));
+  const n = v.items.length;
+  let live = 0;
+  let joining = 0;
+  if (t < 0.45) { live = Math.round((t / 0.45) * n); joining = Math.min(live, 2); }
+  else if (t < 0.7) live = n;
+  else live = Math.round((1 - (t - 0.7) / 0.3) * n);
+  v.items.forEach((el, i) => {
+    const s = i < live - joining ? 'running' : i < live ? 'joining' : '';
+    if ((el.dataset.s || '') !== s) s ? (el.dataset.s = s) : el.removeAttribute('data-s');
+  });
+  const jobs = v.el.querySelector('[data-k="jobs"]');
+  const running = v.el.querySelector('[data-k="nodes"]');
+  if (jobs) jobs.textContent = String(Math.round(24 * (1 - clamp(t / 0.7))));
+  if (running) running.textContent = String(live - joining);
 }
 
-function queue(n: number) {
-  jobs = Math.min(jobs + n, 48);
-  paint();
-  timer ??= window.setInterval(tick, calm ? 250 : 420);
+function drawSteps(v: Viz, y: number) {
+  const t = clamp((y - v.top) / (innerHeight * 0.4));
+  const lit = Math.floor(t * (v.items.length + 0.999));
+  v.items.forEach((el, i) => el.classList.toggle('lit', i < lit));
 }
-queueBtn?.addEventListener('click', () => queue(8));
-if (slots.length && !calm) setTimeout(() => queue(8), 900);
+
+let queued = false;
+function update() {
+  queued = false;
+  if (!main) return;
+  const atBottom = scrollY + innerHeight >= document.documentElement.scrollHeight - 4;
+  // The packet rides a little below the middle of the screen.
+  const y = atBottom ? mainHeight : clamp(scrollY + innerHeight * 0.62 - mainTop, 0, mainHeight);
+  main.style.setProperty('--y', `${y}px`);
+
+  for (const n of nodes) {
+    const on = n.top <= y;
+    if (on !== n.on) { n.on = on; n.el.classList.toggle('on', on); }
+  }
+  for (const v of vizzes) v.kind === 'cluster' ? drawCluster(v, y) : drawSteps(v, y);
+
+  let state = 'queued';
+  for (const s of stages) if (s.top <= y) state = s.name;
+  if (atBottom || state === 'complete') state = 'complete';
+  if (state !== lastState && stateEl) { stateEl.textContent = state === 'complete' ? 'complete ✓' : state; lastState = state; }
+  if (pctEl) pctEl.textContent = `${Math.round((y / Math.max(1, mainHeight)) * 100)}%`;
+  statusBox?.classList.toggle('show', y > 0);
+}
+
+if (main) {
+  document.documentElement.classList.add('js');
+  addEventListener('scroll', () => { if (!queued) { queued = true; requestAnimationFrame(update); } }, { passive: true });
+  addEventListener('resize', layout);
+  new ResizeObserver(() => layout()).observe(main);
+  document.fonts?.ready.then(layout);
+  addEventListener('load', layout);
+  layout();
+}
 
 /* ---- Visitor counter (hidden if the API is not set up yet) ---- */
 (async () => {

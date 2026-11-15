@@ -15,10 +15,11 @@ const gallery = profile.gallery
   .map((g) => ({ ...g, img: galleryFiles[`../assets/gallery/${g.file}`]?.default }))
   .filter((g) => g.img);
 
-const headline = profile.pitch.split(' ');
+const words = profile.pitch.split(' ');
 const lines: string[] = [];
-for (let i = 0; i < headline.length; i += 2) lines.push(headline.slice(i, i + 2).join(' '));
+for (let i = 0; i < words.length; i += 2) lines.push(words.slice(i, i + 2).join(' '));
 const turnstileKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || '';
+const jobId = `#${profile.experience.at(-1)?.start.match(/\d{4}/)?.[0] ?? '2023'}`;
 ---
 <Base>
   <a class="skip" href="#main">Skip to content</a>
@@ -36,107 +37,107 @@ const turnstileKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || '';
     </div>
   </header>
 
-  <main id="main">
-    <section class="hero" id="top">
-      <div class="wrap">
-        <div class="hero-grid">
-          <div>
-            <p class="hello">Hi, I'm {profile.shortName}.</p>
-            <h1 aria-label={profile.pitch}>
-              {lines.map((l, i) => <span aria-hidden="true"><i style={`--i:${i}`}>{l}</i></span>)}
-            </h1>
-            <p class="where">{profile.location}. {profile.availability && `${profile.availability}.`}</p>
-            <ul class="stack" aria-label="Main technologies">
-              {profile.stack.map((s) => <li>{s}</li>)}
-            </ul>
-            <div class="actions">
-              <a class="btn" href="/resume/">Read my resume</a>
-              <a class="btn ghost" href="#contact">Send me a message</a>
-            </div>
-          </div>
-          <div class="face" data-show={portrait ? 'photo' : 'avatar'}>
-            <div class="disc">
-              <Avatar />
-              {portrait && <Image class="photo" src={portrait} alt={`Photo of ${profile.name}`} width={544} height={544} loading="eager" />}
-            </div>
-            {portrait && <button class="swap" type="button" aria-pressed="false">Show avatar</button>}
+  <section class="hero" id="top">
+    <div class="wrap">
+      <div class="hero-grid">
+        <div>
+          <p class="hello">Hi, I'm {profile.shortName}.</p>
+          <h1 aria-label={profile.pitch}>
+            {lines.map((l, i) => <span aria-hidden="true"><i style={`--i:${i}`}>{l}</i></span>)}
+          </h1>
+          <p class="where">{profile.location}. {profile.availability && `${profile.availability}.`}</p>
+          <ul class="stack" aria-label="Main technologies">
+            {profile.stack.map((s) => <li>{s}</li>)}
+          </ul>
+          <div class="actions">
+            <a class="btn" href="/resume/">Read my resume</a>
+            <a class="btn ghost" href="#contact">Send me a message</a>
           </div>
         </div>
+        <div class="face" data-show={portrait ? 'photo' : 'avatar'}>
+          <div class="disc">
+            <Avatar />
+            {portrait && <Image class="photo" src={portrait} alt={`Photo of ${profile.name}`} width={480} height={480} loading="eager" />}
+          </div>
+          {portrait && <button class="swap" type="button" aria-pressed="false">Show avatar</button>}
+        </div>
+      </div>
 
-        <div class="scaler" id="scaler">
-          <div>
-            <h2>My work in miniature</h2>
-            <p>Backup jobs arrive. Compute nodes spin up, register themselves, do the work, then shut down so nobody pays for idle machines.</p>
-            <button class="btn small" type="button" id="queue">Queue 8 backup jobs</button>
-          </div>
-          <div>
-            <div class="readout" aria-live="off">
-              <span><b id="jobs">0</b>jobs waiting</span>
-              <span><b id="nodes">0</b>nodes running</span>
-            </div>
-            <div class="slots" id="slots" aria-hidden="true">
-              {Array.from({ length: 16 }).map(() => <i />)}
-            </div>
-            <div class="legend" aria-hidden="true">
-              <span style="--k:var(--amber)">Registering</span>
-              <span style="--k:var(--cyan)">Running</span>
-            </div>
-          </div>
-        </div>
+      <div class="ticket" aria-hidden="true">
+        <span class="ticket-dot"></span>
+        <p><b>job {jobId}</b> queued</p>
+        <p class="dim">Scroll to run my career as a backup job.</p>
+      </div>
+    </div>
+  </section>
+
+  <main id="main" class="pipeline">
+    <div class="spine" aria-hidden="true">
+      <i class="fill"></i>
+      <i class="packet"></i>
+    </div>
+
+    <section class="band about" id="about" data-stage="authenticating">
+      <div class="wrap lane">
+        <div class="node big" data-node><p class="about-text">{profile.about}</p></div>
       </div>
     </section>
 
-    <section class="band about" id="about">
-      <div class="wrap">
-        <p>{profile.about}</p>
-      </div>
-    </section>
-
-    <section class="band" id="experience">
-      <div class="wrap">
-        <h2>Experience</h2>
+    <section class="band" id="experience" data-stage="running">
+      <div class="wrap lane">
+        <h2 class="node big" data-node>Experience</h2>
         <div class="jobs">
-          {profile.experience.map((job) => (
-            <article class="job">
+          {[...profile.experience].reverse().map((job) => (
+            <article class="node job" data-node>
               <p class="when">{job.start} to {job.end}</p>
-              <div>
-                <h3>{job.role}</h3>
-                <p class="org">{job.company}{job.place && `, ${job.place}`}</p>
-                {job.bullets.length > 0 && <ul>{job.bullets.map((b) => <li>{b}</li>)}</ul>}
-              </div>
+              <h3>{job.role}</h3>
+              <p class="org">{job.company}{job.place && `, ${job.place}`}</p>
+              {job.bullets.length > 0 && <ul>{job.bullets.map((b) => <li>{b}</li>)}</ul>}
             </article>
           ))}
         </div>
       </div>
     </section>
 
-    <section class="band cases" id="case-studies">
-      <div class="wrap">
-        <h2>Case studies</h2>
-        {profile.caseStudies.map((c, i) => (
-          <details class="case" open={i === 0}>
-            <summary>
-              <h3>{c.title}</h3>
-              <p>{c.summary}</p>
-              <span class="toggle" aria-hidden="true"></span>
-            </summary>
+    <section class="band cases" id="case-studies" data-stage="scaling up">
+      <div class="wrap lane">
+        <h2 class="node big" data-node>Case studies</h2>
+        {profile.caseStudies.map((c) => (
+          <article class="node case" data-node>
+            <h3>{c.title}</h3>
+            <p class="lede">{c.summary}</p>
+            {c.visual === 'cluster' && (
+              <div class="viz cluster" data-viz="cluster" aria-hidden="true">
+                <div class="readout">
+                  <span><b data-k="jobs">24</b>jobs waiting</span>
+                  <span><b data-k="nodes">0</b>nodes running</span>
+                </div>
+                <div class="slots">{Array.from({ length: 12 }).map(() => <i />)}</div>
+                <div class="legend"><span style="--k:var(--amber)">Registering</span><span style="--k:var(--cyan)">Running</span></div>
+              </div>
+            )}
+            {c.visual === 'steps' && c.steps.length > 0 && (
+              <ol class="viz steps" data-viz="steps">
+                {c.steps.map((s) => <li>{s}</li>)}
+              </ol>
+            )}
             <div class="body">
               <div><h4>The problem</h4><p>{c.problem}</p></div>
               <div><h4>What I did</h4><p>{c.approach}</p></div>
               <div><h4>The result</h4><p>{c.result}</p></div>
-              {c.tags.length > 0 && <ul class="tags">{c.tags.map((t) => <li>{t}</li>)}</ul>}
             </div>
-          </details>
+            {c.tags.length > 0 && <ul class="tags">{c.tags.map((t) => <li>{t}</li>)}</ul>}
+          </article>
         ))}
       </div>
     </section>
 
-    <section class="band" id="projects">
-      <div class="wrap">
-        <h2>Projects</h2>
+    <section class="band" id="projects" data-stage="writing">
+      <div class="wrap lane">
+        <h2 class="node big" data-node>Projects</h2>
         <div class="projects">
           {projects.map((p) => (
-            <article class="project">
+            <article class="node branch project" data-node>
               <h3>{p.url ? <a href={p.url} rel="noopener">{p.name}</a> : p.name}</h3>
               <p>{p.description}</p>
               {p.tags.length > 0 && <ul class="tags">{p.tags.map((t) => <li>{t}</li>)}</ul>}
@@ -146,15 +147,15 @@ const turnstileKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || '';
       </div>
     </section>
 
-    <section class="band proof" id="achievements">
-      <div class="wrap">
-        <h2>Achievements</h2>
+    <section class="band proof" id="achievements" data-stage="verifying">
+      <div class="wrap lane">
+        <h2 class="node big" data-node>Achievements</h2>
         <dl class="wins">
           {profile.achievements.map((a) => (
-            <div><dt>{a.title}</dt><dd>{a.detail}</dd></div>
+            <div class="node check" data-node><dt>{a.title}</dt><dd>{a.detail}</dd></div>
           ))}
         </dl>
-        <div class="facts">
+        <div class="facts node" data-node>
           <div>
             <h3>Education</h3>
             {profile.education.map((e) => (
@@ -173,12 +174,12 @@ const turnstileKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || '';
       </div>
     </section>
 
-    <section class="band beyond" id="beyond">
-      <div class="wrap">
-        <h2>Beyond code</h2>
+    <section class="band beyond" id="beyond" data-stage="archiving">
+      <div class="wrap lane">
+        <h2 class="node big" data-node>Beyond code</h2>
         <div class="pursuits">
           {profile.interests.map((it) => (
-            <div><h3>{it.title}</h3><p>{it.text}</p></div>
+            <div class="node" data-node><h3>{it.title}</h3><p>{it.text}</p></div>
           ))}
         </div>
         {gallery.length > 0 && (
@@ -194,9 +195,9 @@ const turnstileKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || '';
       </div>
     </section>
 
-    <section class="band" id="contact">
-      <div class="wrap">
-        <h2>Contact</h2>
+    <section class="band contact" id="contact" data-stage="complete">
+      <div class="wrap lane">
+        <h2 class="node big done" data-node>Contact</h2>
         <div class="contact-grid">
           <div>
             <p class="measure">Hiring for a backend or cloud role, or want to talk about a problem you're stuck on? Write to me and I'll reply by email.</p>
@@ -207,7 +208,7 @@ const turnstileKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || '';
               {profile.links.email && <a class="btn ghost small" href={`mailto:${profile.links.email}`}>Email</a>}
             </div>
           </div>
-          <form class="contact" id="contact-form" novalidate>
+          <form class="contact-form" id="contact-form" novalidate>
             <div class="field"><label for="c-name">Your name</label><input id="c-name" name="name" autocomplete="name" required maxlength="100" /></div>
             <div class="field"><label for="c-email">Your email</label><input id="c-email" name="email" type="email" autocomplete="email" required maxlength="200" /></div>
             <div class="field"><label for="c-msg">Message</label><textarea id="c-msg" name="message" required maxlength="4000"></textarea></div>
@@ -220,6 +221,12 @@ const turnstileKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || '';
       </div>
     </section>
   </main>
+
+  <div class="job-status" aria-hidden="true">
+    <b>job {jobId}</b>
+    <span id="job-state">queued</span>
+    <span id="job-pct" class="dim">0%</span>
+  </div>
 
   <footer class="site">
     <div class="wrap">

@@ -51,6 +51,10 @@ export const ProfileSchema = z.object({
         approach: text(800),
         result: text(400),
         tags,
+        // How the case lights up as you scroll past it:
+        // "cluster" = nodes spinning up and down, "steps" = the steps below light in order.
+        visual: z.enum(['cluster', 'steps', 'none']).default('steps'),
+        steps: z.array(text(40)).max(8).default([]),
       }),
     )
     .max(8),
@@ -83,7 +87,8 @@ export const BLANKS: Record<string, unknown> = {
   tags: '',
   items: '',
   experience: { role: '', company: '', place: '', start: '', end: 'Present', bullets: [''] },
-  caseStudies: { title: '', summary: '', problem: '', approach: '', result: '', tags: [] },
+  caseStudies: { title: '', summary: '', problem: '', approach: '', result: '', tags: [], visual: 'steps', steps: [] },
+  steps: '',
   projects: { name: '', description: '', url: '', tags: [] },
   education: { degree: '', school: '', years: '', detail: '' },
   achievements: { title: '', detail: '' },

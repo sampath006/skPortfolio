@@ -29,10 +29,17 @@ test('every internal link works', async ({ page, request }) => {
   for (const href of hrefs) expect((await request.get(href)).status(), href).toBe(200);
 });
 
-test('autoscaler demo starts nodes when jobs are queued', async ({ page }) => {
+test('scrolling runs the job: nodes power on, cluster scales, job completes', async ({ page }) => {
   await page.goto('/');
-  await page.getByRole('button', { name: 'Queue 8 backup jobs' }).click();
-  await expect(page.locator('#slots i[data-s="running"]').first()).toBeVisible({ timeout: 8000 });
+  await expect(page.locator('[data-node].on')).toHaveCount(0);
+  await page.locator('[data-viz="cluster"]').evaluate((el) => el.scrollIntoView({ block: 'start' }));
+  await expect(page.locator('#experience h2.on')).toBeVisible();
+  await expect(page.locator('.slots i[data-s="running"]').first()).toBeVisible();
+  await page.evaluate(() => scrollTo(0, document.documentElement.scrollHeight));
+  await expect(page.locator('#job-state')).toHaveText(/complete/);
+  await expect(page.locator('#contact h2')).toHaveClass(/(^| )on( |$)/);
+  await page.evaluate(() => scrollTo(0, 0));
+  await expect(page.locator('#contact h2')).not.toHaveClass(/(^| )on( |$)/);
 });
 
 test('visitor counter counts', async ({ request }) => {

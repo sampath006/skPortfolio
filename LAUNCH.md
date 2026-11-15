@@ -12,7 +12,7 @@ Menu names in GitHub and Cloudflare change now and then; if a label differs slig
    git init -b main
    git add .
    git commit -m "Portfolio site"
-   git remote add origin https://github.com/YOUR-USERNAME/portfolio.git
+   git remote add origin https://github.com/sampath006/portfolio.git
    git push -u origin main
    ```
 4. In Cloudflare: **Workers & Pages → Create → Pages → Connect to Git**. Pick the `portfolio` repo and set:
